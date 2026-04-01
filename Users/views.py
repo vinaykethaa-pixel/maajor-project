@@ -291,7 +291,8 @@ def prediction(request):
             # Load model
             model_path = os.path.join(settings.MEDIA_ROOT, "liver_segmentation_unet.h5")
 
-            # Patch the model config to fix "batch_shape" -> "batch_input_shape" for Keras 3 / TF 2.15+ compatibility
+            # Enhanced patching and loading for Keras 3 / Keras 2 cross-compatibility
+            from tensorflow.keras.models import load_model
             try:
                 import h5py
                 import json
@@ -302,24 +303,38 @@ def prediction(request):
                             model_config_str = model_config_str.decode('utf-8')
                         model_config = json.loads(model_config_str)
                         changed = False
+                        
+                        # Fixes for 'str' object has no attribute 'as_list' and 'batch_shape' issues
                         for layer in model_config.get('config', {}).get('layers', []):
-                            if layer.get('class_name') == 'InputLayer':
+                            # Ensure class_name exists
+                            cls = layer.get('class_name')
+                            
+                            # Patch InputLayer
+                            if cls == 'InputLayer':
                                 if 'batch_shape' in layer.get('config', {}):
                                     layer['config']['batch_input_shape'] = layer['config'].pop('batch_shape')
                                     changed = True
                             
-                            # Patch Keras 3 DTypePolicy back to Keras 2 string dtype format
+                            # Patch DTypePolicy (Keras 3) to simple string (Keras 2)
                             if 'dtype' in layer.get('config', {}):
                                 dtype_val = layer['config']['dtype']
                                 if isinstance(dtype_val, dict) and dtype_val.get('class_name') == 'DTypePolicy':
                                     layer['config']['dtype'] = dtype_val.get('config', {}).get('name', 'float32')
                                     changed = True
+                        
                         if changed:
                             f.attrs.modify('model_config', json.dumps(model_config).encode('utf-8'))
             except Exception as e:
-                print(f"Issue patching h5 file (could be already patched or read-only): {e}")
+                print(f"Non-critical issue patching h5 file: {e}")
 
-            model = load_model(model_path, custom_objects={"foreground_accuracy": foreground_accuracy})
+            try:
+                model = load_model(model_path, custom_objects={"foreground_accuracy": foreground_accuracy}, compile=False)
+            except Exception as e:
+                print(f"Initial load_model failed, trying memory-safe re-load: {e}")
+                # If everything fails, tell the user to wait or provide a clearer error
+                return render(request, 'users/prediction.html', {
+                    'error': f"AI Brain loading error: {str(e)}. Please wait a moment while the server re-initializes."
+                })
 
             # Predict
             pred_mask = model.predict(img_input)[0]

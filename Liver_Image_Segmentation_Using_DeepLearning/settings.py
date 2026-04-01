@@ -27,6 +27,7 @@ SECRET_KEY = 'django-insecure-+c3&2z$#q9j@ea-i@&ri98g1_l5hbxh7ld8m*9et2_(_-0jb#%
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = ["https://maajor-project-4nta.onrender.com"]
 
 
 # Application definition
