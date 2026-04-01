@@ -176,8 +176,24 @@
             font-weight: 700;
             background: linear-gradient(90deg, #fff, var(--primary-accent));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .glass-card h1 {
+                font-size: 1.8rem;
+            }
+            .typewriter-title {
+                white-space: normal;
+                border: none;
+                width: auto;
+                animation: fadeIn 0.8s ease forwards;
+            }
+            .glass-card {
+                padding: 30px 20px;
+            }
         }
         
         .glass-card p {

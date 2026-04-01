@@ -186,6 +186,16 @@
                        blink-caret 0.75s step-end infinite;
         }
 
+        @media (max-width: 768px) {
+            .typewriter-title {
+                white-space: normal;
+                border: none;
+                width: auto;
+                animation: fadeIn 0.8s ease forwards;
+                font-size: 1.8rem;
+            }
+        }
+
         @keyframes typing {
             to { width: 100%; }
         }
@@ -200,6 +210,7 @@
             font-weight: 700;
             background: linear-gradient(90deg, #fff, var(--primary-accent));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 25px;
         }

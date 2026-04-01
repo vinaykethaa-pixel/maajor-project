@@ -144,6 +144,12 @@
             margin-bottom: 20px;
         }
 
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.2rem;
+            }
+        }
+
         .hero-title .line1 {
             display: block;
             color: var(--text-main);
@@ -152,7 +158,16 @@
             border-right: 3px solid var(--primary-accent);
             width: 0;
             animation: typing 1.5s steps(20, end) forwards 0.6s,
-                       blink-caret 0.75s step-end infinite;
+                       blink-caret 1s step-end infinite;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title .line1 {
+                white-space: normal;
+                border-right: none;
+                width: auto;
+                animation: fadeIn 0.8s ease forwards;
+            }
         }
 
         .hero-title .line2 {
@@ -261,6 +276,19 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 25px;
+        }
+
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
         }
 
         .feature-card {

@@ -221,8 +221,21 @@
             font-weight: 700;
             background: linear-gradient(90deg, #fff, var(--primary-accent));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .glass-card h1 {
+                font-size: 1.8rem;
+            }
+            .typewriter-title {
+                white-space: normal;
+                border: none;
+                width: auto;
+                animation: fadeIn 0.8s ease forwards;
+            }
         }
 
         .glass-card h2 {
@@ -232,6 +245,15 @@
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .glass-card h2 {
+                font-size: 1.4rem;
+            }
+            .glass-card {
+                padding: 25px 20px;
+            }
         }
         
         .glass-card h2 i {
