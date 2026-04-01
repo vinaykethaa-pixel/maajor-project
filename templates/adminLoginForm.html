@@ -1,0 +1,385 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#030b14">
+    <title>AI Liver Segmentation - Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #030a11;
+            --glass-bg: rgba(16, 29, 45, 0.6);
+            --glass-border: rgba(0, 255, 204, 0.2);
+            --primary-accent: #00ffcc;
+            --primary-glow: rgba(0, 255, 204, 0.4);
+            --secondary-accent: #007aff;
+            --text-main: #f0f8ffff;
+            --text-muted: #8d9eb5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #particles {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none;
+        }
+        #threejs-scene {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none; opacity: 0.6;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(3, 10, 17, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 15px 30px;
+            position: fixed; width: 100%; top: 0; z-index: 100;
+            transition: all 0.3s ease;
+        }
+        .nav-container {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto;
+        }
+        .nav-logo {
+            display: flex; align-items: center;
+            font-size: 1.4rem; font-weight: 700;
+            color: var(--text-main); text-decoration: none;
+            text-transform: uppercase; letter-spacing: 1.5px;
+        }
+        .nav-logo i {
+            color: var(--primary-accent); font-size: 1.8rem; margin-right: 12px;
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+        .nav-menu { display: flex; align-items: center; gap: 25px; }
+        .nav-btn {
+            color: var(--text-muted); text-decoration: none;
+            font-weight: 500; font-size: 0.95rem;
+            transition: all 0.3s ease; position: relative;
+        }
+        .nav-btn:hover { color: var(--primary-accent); }
+        .nav-btn::after {
+            content: ''; position: absolute; width: 0%; height: 2px;
+            bottom: -5px; left: 0; background: var(--primary-accent); transition: 0.3s ease;
+        }
+        .nav-btn:hover::after { width: 100%; box-shadow: 0 0 10px var(--primary-glow); }
+        .menu-toggle { display: none; color: var(--text-main); font-size: 1.8rem; cursor: pointer; }
+
+        /* Main Wrapper */
+        .main-wrapper {
+            position: relative; z-index: 10; flex-grow: 1;
+            display: flex; justify-content: center; align-items: center;
+            padding: 120px 20px 60px; min-height: 100vh;
+        }
+
+        /* Glassmorphism Admin Card */
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%; max-width: 480px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 255, 204, 0.05);
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0; transform: translateY(30px);
+        }
+
+        @keyframes slideUpFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            text-align: center; margin-bottom: 35px;
+        }
+        .admin-icon-wrap {
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .admin-icon-wrap i {
+            font-size: 2rem; color: var(--primary-accent);
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+
+        /* Typewriter */
+        .typewriter-title {
+            overflow: hidden; white-space: nowrap;
+            border-right: 3px solid var(--primary-accent);
+            width: 0; display: inline-block; max-width: 100%;
+            font-size: 2.2rem; font-weight: 700;
+            background: linear-gradient(90deg, #fff, var(--primary-accent));
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: typing 1.2s steps(11, end) forwards 0.5s,
+                       blink-caret 0.75s step-end infinite;
+        }
+        .typewriter-sub {
+            color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-top: 10px;
+            opacity: 0; animation: fadeInSub 0.6s ease forwards 1.8s;
+        }
+        @keyframes typing { to { width: 100%; } }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--primary-accent); }
+        }
+        @keyframes fadeInSub { to { opacity: 1; } }
+
+        /* Form Inputs */
+        .input-group { position: relative; margin-bottom: 25px; }
+        .input-group i {
+            position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 1.1rem; transition: 0.3s ease;
+        }
+        .login-input {
+            width: 100%; padding: 16px 20px 16px 45px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; color: #fff; font-size: 1rem; outline: none;
+            transition: all 0.3s ease;
+        }
+        .login-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        .login-input:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.15);
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .login-input:focus ~ i { color: var(--primary-accent); filter: drop-shadow(0 0 5px var(--primary-glow)); }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+            color: #000; font-size: 1.1rem; font-weight: 600; letter-spacing: 1px;
+            cursor: pointer; transition: all 0.4s ease;
+            box-shadow: 0 10px 20px rgba(0, 255, 204, 0.2);
+            position: relative; overflow: hidden; margin-top: 10px;
+        }
+        .submit-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s ease;
+        }
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 255, 204, 0.4); color: #fff;
+        }
+        .submit-btn:hover::before { left: 100%; }
+
+        /* Messages */
+        .messages-container { margin-bottom: 25px; }
+        .msg-alert {
+            padding: 12px 15px; border-radius: 10px; font-size: 0.9rem;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
+            animation: fadeIn 0.5s ease forwards;
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3); color: #ff4757;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .footer-text {
+            text-align: center; margin-top: 30px;
+            color: var(--text-muted); font-size: 0.9rem;
+        }
+        .footer-text a {
+            color: var(--primary-accent); text-decoration: none;
+            font-weight: 500; transition: 0.3s;
+        }
+        .footer-text a:hover { text-shadow: 0 0 8px var(--primary-glow); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none; flex-direction: column;
+                position: absolute; top: 100%; left: 0; width: 100%;
+                background: rgba(3, 10, 17, 0.95); backdrop-filter: blur(15px);
+                padding: 20px 0; border-bottom: 1px solid var(--glass-border);
+            }
+            .nav-menu.active { display: flex; }
+            .nav-btn { font-size: 1.1rem; padding: 10px 0; width: 100%; text-align: center; }
+            .nav-btn::after { display: none; }
+            .menu-toggle { display: block; }
+            .login-card { padding: 40px 25px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    <div id="threejs-scene"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fa-solid fa-microchip"></i> AI Liver Scan
+            </a>
+            <div class="menu-toggle" id="mobileMenu">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="/" class="nav-btn"><i class="fas fa-home"></i> Home</a>
+                <a href="userLoginForm" class="nav-btn"><i class="fas fa-user-circle"></i> User Login</a>
+                <a href="adminLoginForm" class="nav-btn" style="color: var(--primary-accent);"><i class="fas fa-user-shield"></i> Admin</a>
+                <a href="userRegisterForm" class="nav-btn"><i class="fas fa-user-plus"></i> Register</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-wrapper">
+        <div class="login-card">
+
+            <div class="login-header">
+                <div class="admin-icon-wrap">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h1><span class="typewriter-title">Admin Portal</span></h1>
+                <p class="typewriter-sub">Secure access to manage users, data, and system settings.</p>
+            </div>
+
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="msg-alert">
+                    <i class="fas fa-exclamation-circle"></i> {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" action="adminLoginCheck" id="adminLoginForm">
+                {% csrf_token %}
+
+                <div class="input-group">
+                    <input type="text" id="adminUsername" name="adminUsername" class="login-input"
+                        placeholder="Admin username" required autocomplete="off">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="adminPassword" name="adminPassword" class="login-input"
+                        placeholder="Admin password" required>
+                    <i class="fas fa-lock"></i>
+                </div>
+
+                <button type="submit" class="submit-btn" id="adminLoginBtn">
+                    Secure Login <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                </button>
+            </form>
+
+            <div class="footer-text">
+                Not an admin? <a href="userLoginForm">User Login</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navMenu = document.getElementById('navMenu');
+        mobileMenu.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            const icon = mobileMenu.querySelector('i');
+            icon.className = navMenu.classList.contains('active') ? 'fas fa-times' : 'fas fa-bars';
+        });
+
+        // Loading state
+        document.getElementById('adminLoginForm').addEventListener('submit', function() {
+            const btn = document.getElementById('adminLoginBtn');
+            btn.innerHTML = 'Verifying <i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i>';
+            btn.style.opacity = '0.8';
+        });
+
+        // Particle System
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+        const numParticles = window.innerWidth < 768 ? 40 : 80;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.speedY = Math.random() * 0.6 - 0.3;
+                this.color = `rgba(0, 255, 204, ${Math.random() * 0.3 + 0.1})`;
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < numParticles; i++) particlesArray.push(new Particle());
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particlesArray.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Three.js
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('threejs-scene').appendChild(renderer.domElement);
+
+        const geo = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true, transparent: true, opacity: 0.15 });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(window.innerWidth > 768 ? -20 : 0, 0, -30);
+        scene.add(mesh);
+
+        const clock = new THREE.Clock();
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            const t = clock.getElapsedTime();
+            mesh.rotation.x = t * 0.1; mesh.rotation.y = t * 0.15;
+            mesh.position.y += Math.sin(t) * 0.02;
+            renderer.render(scene, camera);
+        }
+        animateThree();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            mesh.position.set(window.innerWidth > 768 ? -20 : 0, 0, -30);
+        });
+    </script>
+</body>
+</html>

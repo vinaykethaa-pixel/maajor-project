@@ -1,0 +1,556 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#030b14">
+    <title>AI Liver Segmentation - Prediction</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    
+    <style>
+        /* Modern Medical AI Theme Variables */
+        :root {
+            --bg-color: #030a11;
+            --glass-bg: rgba(16, 29, 45, 0.6);
+            --glass-border: rgba(0, 255, 204, 0.2);
+            --primary-accent: #00ffcc;
+            --primary-glow: rgba(0, 255, 204, 0.4);
+            --secondary-accent: #007aff;
+            --text-main: #f0f8ffff;
+            --text-muted: #8d9eb5;
+        }
+
+        /* Global Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Background Canvas Elements */
+        #particles {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+        #threejs-scene {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Modern Glass Navbar */
+        .navbar {
+            background: rgba(3, 10, 17, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 15px 30px;
+            position: fixed;
+            width: 100%;
+            top: 0; z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .nav-logo i {
+            color: var(--primary-accent);
+            font-size: 1.8rem;
+            margin-right: 12px;
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .nav-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            color: var(--primary-accent);
+        }
+
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            width: 0%; height: 2px;
+            bottom: -5px; left: 0;
+            background: var(--primary-accent);
+            transition: 0.3s ease;
+        }
+
+        .nav-btn:hover::after, .nav-btn.active::after {
+            width: 100%;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .menu-toggle {
+            display: none;
+            color: var(--text-main);
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        /* Prediction Dashboard */
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 1000px;
+            margin: 100px auto 40px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 0 15px rgba(0, 255, 204, 0.05);
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            text-align: center;
+        }
+
+        @keyframes slideUpFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typewriter Animation */
+        .typewriter-title {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid var(--primary-accent);
+            width: 0;
+            display: inline-block;
+            max-width: 100%;
+            background: linear-gradient(90deg, #fff, var(--primary-accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: typing 1.5s steps(26, end) forwards 0.5s,
+                       blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--primary-accent); }
+        }
+
+        .glass-card h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff, var(--primary-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 25px;
+        }
+        
+        /* Modern File Input */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 150px;
+            border: 2px dashed rgba(0, 255, 204, 0.4);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-upload-wrapper:hover, .file-upload-wrapper.dragover {
+            background: rgba(0, 255, 204, 0.05);
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+        }
+
+        .file-upload-wrapper i {
+            font-size: 3rem;
+            color: var(--primary-accent);
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 5px var(--primary-glow));
+        }
+
+        .file-upload-wrapper span {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 20px rgba(0, 255, 204, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 255, 204, 0.4);
+            color: #fff;
+        }
+        .submit-btn:hover::before { left: 100%; }
+
+        /* Error Message Styling */
+        .error-message {
+            color: #ff4757;
+            font-size: 1rem;
+            margin-top: 20px;
+            background-color: rgba(255, 71, 87, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Results Container */
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .result-box h3 {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 15px;
+        }
+
+        .result-box img {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            max-height: 400px;
+            object-fit: contain;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%; left: 0; width: 100%;
+                background: rgba(3, 10, 17, 0.95);
+                backdrop-filter: blur(15px);
+                padding: 20px 0;
+                border-bottom: 1px solid var(--glass-border);
+            }
+            .nav-menu.active { display: flex; }
+            .nav-btn {
+                font-size: 1.1rem;
+                padding: 10px 0;
+                width: 100%;
+                text-align: center;
+            }
+            .nav-btn::after { display: none; }
+            .menu-toggle { display: block; }
+
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Subtle Particle Background -->
+    <canvas id="particles"></canvas>
+    
+    <!-- Professional 3D Medical Hologram Background -->
+    <div id="threejs-scene"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <i class="fa-solid fa-microchip"></i> 
+                AI Liver Scan
+            </a>
+            <div class="menu-toggle" id="mobileMenu">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="userHome" class="nav-btn"><i class="fas fa-home mr-1"></i> Home</a>
+                <a href="training" class="nav-btn"><i class="fas fa-book mr-1"></i> Training</a>
+                <a href="prediction" class="nav-btn active"><i class="fas fa-chart-line mr-1"></i> Prediction</a>
+                <a href="Ulog" class="nav-btn"><i class="fas fa-sign-out-alt mr-1"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <section class="glass-card">
+            <h2><span class="typewriter-title">Diagnostic AI Segmentation</span></h2>
+            <form method="POST" enctype="multipart/form-data" id="predictionForm">
+                {% csrf_token %}
+                
+                <div class="file-upload-wrapper" id="dropArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span id="fileNameDisplay">Drag & drop or click to upload CT scan</span>
+                    <input type="file" id="image-upload" name="image" accept="image/*" required />
+                </div>
+
+                <button type="submit" class="submit-btn" id="predBtn">
+                    Analyze Image <i class="fas fa-microscope" style="margin-left: 8px;"></i>
+                </button>
+            </form>
+
+            {% if error %}
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            {% if image_url and mask_url %}
+            <div class="results-container">
+                <div class="result-box">
+                    <h3>Source Scan</h3>
+                    <img src="{{ image_url }}" alt="Uploaded Liver CT Image" />
+                </div>
+                <div class="result-box">
+                    <h3>AI Detected Mask</h3>
+                    <img src="{{ mask_url }}" alt="Predicted Liver Mask" />
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Smooth Mobile Menu Toggle
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navMenu = document.getElementById('navMenu');
+        mobileMenu.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            const icon = mobileMenu.querySelector('i');
+            if(navMenu.classList.contains('active')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        });
+
+        // File upload UI update and loading state
+        const fileInput = document.getElementById('image-upload');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        
+        fileInput.addEventListener('change', function(e) {
+            if(e.target.files.length > 0) {
+                fileNameDisplay.textContent = e.target.files[0].name;
+                fileNameDisplay.style.color = 'var(--primary-accent)';
+            }
+        });
+
+        document.getElementById('predictionForm').addEventListener('submit', function() {
+            const btn = document.getElementById('predBtn');
+            btn.innerHTML = 'Analyzing <i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i>';
+            btn.style.opacity = '0.8';
+        });
+
+        // -------------------------------------------------------------
+        // Subtle Particle System
+        // -------------------------------------------------------------
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+        const numParticles = window.innerWidth < 768 ? 40 : 80;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.speedY = Math.random() * 0.6 - 0.3;
+                this.color = `rgba(0, 255, 204, ${Math.random() * 0.3 + 0.1})`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < numParticles; i++) particlesArray.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particlesArray.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // -------------------------------------------------------------
+        // Professional Three.js Holographic Medical Background
+        // -------------------------------------------------------------
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('threejs-scene').appendChild(renderer.domElement);
+
+        const liverGeometry = new THREE.TorusKnotGeometry(10, 3, 100, 16); 
+        const wireframeMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ffcc, 
+            wireframe: true, 
+            transparent: true,
+            opacity: 0.12
+        });
+        const brainMesh = new THREE.Mesh(liverGeometry, wireframeMaterial);
+        
+        if(window.innerWidth > 768) {
+            brainMesh.position.set(0, 0, -45);
+        } else {
+            brainMesh.position.set(0, 5, -50);
+        }
+        scene.add(brainMesh);
+
+        let clock = new THREE.Clock();
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            const time = clock.getElapsedTime();
+            
+            brainMesh.rotation.x = time * 0.08;
+            brainMesh.rotation.y = time * 0.12;
+            brainMesh.position.y += Math.sin(time) * 0.02; // floating effect
+            
+            renderer.render(scene, camera);
+        }
+        animateThree();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            if(window.innerWidth > 768) {
+                brainMesh.position.set(0, 0, -45);
+            } else {
+                brainMesh.position.set(0, 5, -50);
+            }
+        });
+    </script>
+</body>
+</html>

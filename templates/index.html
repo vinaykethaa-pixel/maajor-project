@@ -1,0 +1,500 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#030b14">
+    <title>AI Liver Segmentation - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #030a11;
+            --glass-bg: rgba(16, 29, 45, 0.6);
+            --glass-border: rgba(0, 255, 204, 0.2);
+            --primary-accent: #00ffcc;
+            --primary-glow: rgba(0, 255, 204, 0.4);
+            --secondary-accent: #007aff;
+            --text-main: #f0f8ffff;
+            --text-muted: #8d9eb5;
+        }
+
+        * {
+            margin: 0; padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #particles {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none;
+        }
+        #threejs-scene {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none; opacity: 0.6;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(3, 10, 17, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 15px 30px;
+            position: fixed;
+            width: 100%; top: 0; z-index: 100;
+            transition: all 0.3s ease;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .nav-logo {
+            display: flex; align-items: center;
+            font-size: 1.4rem; font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+            text-transform: uppercase; letter-spacing: 1.5px;
+        }
+        .nav-logo i {
+            color: var(--primary-accent);
+            font-size: 1.8rem; margin-right: 12px;
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+        .nav-menu {
+            display: flex; align-items: center; gap: 25px;
+        }
+        .nav-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500; font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-btn:hover { color: var(--primary-accent); }
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            width: 0%; height: 2px;
+            bottom: -5px; left: 0;
+            background: var(--primary-accent);
+            transition: 0.3s ease;
+        }
+        .nav-btn:hover::after {
+            width: 100%;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        .menu-toggle {
+            display: none;
+            color: var(--text-main);
+            font-size: 1.8rem; cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero-wrapper {
+            position: relative; z-index: 10;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 120px 20px 80px;
+            min-height: 100vh;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            color: var(--primary-accent);
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .hero-title .line1 {
+            display: block;
+            color: var(--text-main);
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid var(--primary-accent);
+            width: 0;
+            animation: typing 1.5s steps(20, end) forwards 0.6s,
+                       blink-caret 0.75s step-end infinite;
+        }
+
+        .hero-title .line2 {
+            display: block;
+            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 2.2s;
+        }
+
+        @keyframes typing {
+            to { width: 100%; }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--primary-accent); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .hero-sub {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            line-height: 1.7;
+            max-width: 600px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 2.8s;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 3.2s;
+        }
+
+        .btn-primary {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+            color: #000;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 25px rgba(0, 255, 204, 0.25);
+            position: relative; overflow: hidden;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 35px rgba(0, 255, 204, 0.4);
+            color: #fff;
+        }
+        .btn-primary:hover::before { left: 100%; }
+
+        .btn-outline {
+            padding: 16px 36px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            color: var(--text-main);
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-outline:hover {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.15);
+        }
+
+        /* Feature Cards */
+        .features-section {
+            position: relative; z-index: 10;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto 80px;
+            padding: 0 20px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 35px 30px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.7s ease forwards;
+            opacity: 0;
+        }
+        .feature-card:nth-child(1) { animation-delay: 0.2s; }
+        .feature-card:nth-child(2) { animation-delay: 0.4s; }
+        .feature-card:nth-child(3) { animation-delay: 0.6s; }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 25px rgba(0, 255, 204, 0.1);
+        }
+
+        .feature-icon {
+            width: 65px; height: 65px;
+            border-radius: 16px;
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .feature-icon i {
+            font-size: 1.8rem;
+            color: var(--primary-accent);
+            filter: drop-shadow(0 0 6px var(--primary-glow));
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            position: relative; z-index: 10;
+            text-align: center;
+            padding: 25px 20px;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .features-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none; flex-direction: column;
+                position: absolute; top: 100%; left: 0; width: 100%;
+                background: rgba(3, 10, 17, 0.95);
+                backdrop-filter: blur(15px);
+                padding: 20px 0;
+                border-bottom: 1px solid var(--glass-border);
+            }
+            .nav-menu.active { display: flex; }
+            .nav-btn { font-size: 1.1rem; padding: 10px 0; width: 100%; text-align: center; }
+            .nav-btn::after { display: none; }
+            .menu-toggle { display: block; }
+            .hero-title { font-size: 2.5rem; }
+            .features-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    <div id="threejs-scene"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fa-solid fa-microchip"></i> AI Liver Scan
+            </a>
+            <div class="menu-toggle" id="mobileMenu">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="/" class="nav-btn" style="color: var(--primary-accent)"><i class="fas fa-home"></i> Home</a>
+                <a href="userLoginForm" class="nav-btn"><i class="fas fa-user"></i> User Login</a>
+                <a href="adminLoginForm" class="nav-btn"><i class="fas fa-user-shield"></i> Admin</a>
+                <a href="userRegisterForm" class="nav-btn"><i class="fas fa-user-plus"></i> Register</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-wrapper">
+        <div class="hero-badge">
+            <i class="fas fa-circle-dot" style="font-size:0.6rem;"></i> AI-Powered Medical Diagnostics
+        </div>
+
+        <h1 class="hero-title">
+            <span class="line1">Liver Image Segmentation</span>
+            <span class="line2">with Deep Learning AI</span>
+        </h1>
+
+        <p class="hero-sub">
+            Accurately identify and outline liver regions from CT scans. Diagnose liver diseases, plan surgeries, and monitor treatment with precision AI technology.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="userLoginForm" class="btn-primary">
+                <i class="fas fa-microscope" style="margin-right:8px;"></i>Analyze Now
+            </a>
+            <a href="userRegisterForm" class="btn-outline">
+                <i class="fas fa-user-plus" style="margin-right:8px;"></i>Get Started
+            </a>
+        </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <section class="features-section">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                <h3>U-Net Deep Learning</h3>
+                <p>State-of-the-art convolutional neural network architecture for precise medical image segmentation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
+                <h3>Secure & Reliable</h3>
+                <p>Medical-grade data security with robust session management and encrypted upload pipelines.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Real-Time Analytics</h3>
+                <p>View model performance metrics, training history, and segmentation results in real-time.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>© 2025 AI Liver Segmentation. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navMenu = document.getElementById('navMenu');
+        mobileMenu.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            const icon = mobileMenu.querySelector('i');
+            icon.className = navMenu.classList.contains('active') ? 'fas fa-times' : 'fas fa-bars';
+        });
+
+        // Particle System
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+        const numParticles = window.innerWidth < 768 ? 40 : 80;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.speedY = Math.random() * 0.6 - 0.3;
+                this.color = `rgba(0, 255, 204, ${Math.random() * 0.3 + 0.1})`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < numParticles; i++) particlesArray.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particlesArray.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Three.js Holographic Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('threejs-scene').appendChild(renderer.domElement);
+
+        const geo = new THREE.TorusKnotGeometry(10, 3, 120, 16);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true, transparent: true, opacity: 0.1 });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(window.innerWidth > 768 ? 18 : 0, 0, -35);
+        scene.add(mesh);
+
+        const clock = new THREE.Clock();
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            const t = clock.getElapsedTime();
+            mesh.rotation.x = t * 0.08;
+            mesh.rotation.y = t * 0.12;
+            mesh.position.y = Math.sin(t) * 0.5;
+            renderer.render(scene, camera);
+        }
+        animateThree();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            mesh.position.set(window.innerWidth > 768 ? 18 : 0, 0, -35);
+        });
+    </script>
+</body>
+</html>
